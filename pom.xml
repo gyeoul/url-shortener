@@ -87,6 +87,7 @@
     </dependencies>
 
     <build>
+        <sourceDirectory>src/main/java</sourceDirectory>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -118,31 +119,6 @@
                         </goals>
                     </execution>
                 </executions>
-                <dependencies>
-                    <dependency>
-                        <groupId>com.h2database</groupId>
-                        <artifactId>h2</artifactId>
-                        <version>${h2.version}</version>
-                    </dependency>
-                </dependencies>
-                <configuration>
-                    <jdbc>
-                        <driver>org.h2.Driver</driver>
-                        <url>jdbc:h2:file:./data/db;MODE=PostgreSQL</url>
-                        <user>sa</user>
-                        <password></password>
-                    </jdbc>
-                    <generator>
-                        <database>
-                            <name>org.jooq.meta.h2.H2Database</name>
-                            <inputSchema>PUBLIC</inputSchema>
-                        </database>
-                        <target>
-                            <packageName>dev.gyeoul.urlshortener.jooq</packageName>
-                            <directory>target/generated-sources/jooq</directory>
-                        </target>
-                    </generator>
-                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
@@ -160,6 +136,142 @@
     </build>
 
     <profiles>
+        <profile>
+            <id>jooq-dev</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.jooq</groupId>
+                        <artifactId>jooq-codegen-maven</artifactId>
+                        <dependencies>
+                            <dependency>
+                                <groupId>com.h2database</groupId>
+                                <artifactId>h2</artifactId>
+                                <version>${h2.version}</version>
+                            </dependency>
+                        </dependencies>
+                        <configuration>
+                            <jdbc>
+                                <driver>org.h2.Driver</driver>
+                                <url>jdbc:h2:file:./data/dev-db;MODE=PostgreSQL</url>
+                                <user>sa</user>
+                                <password></password>
+                            </jdbc>
+                            <generator>
+                                <database>
+                                    <name>org.jooq.meta.h2.H2Database</name>
+                                    <inputSchema>URL_SHORTENER</inputSchema>
+                                    <includes>.*</includes>
+                                    <excludes></excludes>
+                                </database>
+                                <generate>
+                                    <pojos>true</pojos>
+                                    <daos>false</daos>
+                                    <records>true</records>
+                                    <interfaces>false</interfaces>
+                                    <fluentSetters>true</fluentSetters>
+                                    <javaTimeTypes>true</javaTimeTypes>
+                                </generate>
+                                <strategy>
+                                    <name>org.jooq.codegen.DefaultGeneratorStrategy</name>
+                                    <matchers>
+                                        <tables>
+                                            <table>
+                                                <tableClass>
+                                                    <transform>PASCAL</transform>
+                                                    <expression>JUrl</expression>
+                                                </tableClass>
+                                                <tableIdentifier>
+                                                    <transform>LOWER</transform>
+                                                    <expression>$0</expression>
+                                                </tableIdentifier>
+                                            </table>
+                                        </tables>
+                                    </matchers>
+                                </strategy>
+                                <target>
+                                    <packageName>dev.gyeoul.urlshortener.jooq</packageName>
+                                    <directory>target/generated-sources/jooq</directory>
+                                </target>
+                            </generator>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>jooq-prod</id>
+            <dependencies>
+                <dependency>
+                    <groupId>org.postgresql</groupId>
+                    <artifactId>postgresql</artifactId>
+                    <scope>provided</scope>
+                </dependency>
+            </dependencies>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.jooq</groupId>
+                        <artifactId>jooq-codegen-maven</artifactId>
+                        <dependencies>
+                            <dependency>
+                                <groupId>org.postgresql</groupId>
+                                <artifactId>postgresql</artifactId>
+                                <version>${postgresql.version}</version>
+                            </dependency>
+                        </dependencies>
+                        <configuration>
+                            <jdbc>
+                                <driver>org.postgresql.Driver</driver>
+                                <url>${db.url}</url>
+                                <user>${db.username}</user>
+                                <password>${db.password}</password>
+                            </jdbc>
+                            <generator>
+                                <database>
+                                    <name>org.jooq.meta.postgres.PostgresDatabase</name>
+                                    <inputSchema>public</inputSchema>
+                                    <includes>.*</includes>
+                                    <excludes></excludes>
+                                </database>
+                                <generate>
+                                    <pojos>true</pojos>
+                                    <daos>false</daos>
+                                    <records>true</records>
+                                    <interfaces>false</interfaces>
+                                    <fluentSetters>true</fluentSetters>
+                                    <javaTimeTypes>true</javaTimeTypes>
+                                </generate>
+                                <strategy>
+                                    <name>org.jooq.codegen.DefaultGeneratorStrategy</name>
+                                    <matchers>
+                                        <tables>
+                                            <table>
+                                                <tableClass>
+                                                    <transform>PASCAL</transform>
+                                                    <expression>JUrl</expression>
+                                                </tableClass>
+                                                <tableIdentifier>
+                                                    <transform>LOWER</transform>
+                                                    <expression>$0</expression>
+                                                </tableIdentifier>
+                                            </table>
+                                        </tables>
+                                    </matchers>
+                                </strategy>
+                                <target>
+                                    <packageName>dev.gyeoul.urlshortener.jooq</packageName>
+                                    <directory>target/generated-sources/jooq</directory>
+                                </target>
+                            </generator>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
         <profile>
             <id>native</id>
             <build>
